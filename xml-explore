@@ -1,0 +1,90 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+#
+# Reads an XML file and allows scripted updates to that file
+#
+
+use XML::Twig;
+
+use Data::Dumper;
+$Data::Dumper::Indent = 1;
+$Data::Dumper::Sortkeys = 1;
+
+if (!defined $ARGV[0]) {
+	print "Usage: xml-explore XML_FILE [update script...]\n";
+	print "\n";
+	print "With no update script, reads standard input\n";
+	print "use 'help' to get list of update commands\n";
+	print "\n";
+	print "Example update script:\n";
+	print '  cd /Service[@name="Catalina"]/Connector[@secure="false"]',"\n";
+	print "  set_att port=80\n";
+	print "  # note: no quotes - anything after the '=' is part of the value\n";
+	print "  cd /\n";
+	print "  print\n";
+	exit 1;
+}
+
+my $xml = XML::Twig->new();
+if ($XML::Twig::VERSION >= 3.34) {
+	$xml->set_pretty_print("indented_a");
+} else {
+	$xml->set_pretty_print("indented");
+}
+
+$xml->parsefile($ARGV[0]);
+shift @ARGV;
+
+# TODO - pass the updates via a macro compiler
+
+my $cd = $xml->root;
+while(<>) {
+	chomp; s/\r//g;
+	# delete whitespace
+	s/^\s*//;
+	# delete comments
+	s/^#.*$//; s/([^\\])#.*$/$1/;
+
+	if (m/^$/) { #ignore blank lines
+		next;
+	} elsif (m/^help\s*$/) { # show a help screen
+		print "cd, pwd, ls, print, dump, delete, set_att\n";
+	} elsif (m/^cd\s+(.*)$/) {
+		my $path=$1;
+		if ($path =~ s{^/}{}) {
+			# hack!
+			# get_xpath('/') returns success but the object
+			# returned does not have a ->path or a ->set_att.
+			# This has been generalised to allow any path to
+			# start from root, as that didnt work either.
+			# TODO - surely this is not required
+			$cd = $xml->root;
+		}
+		my $old_cd = $cd;
+		$cd = $cd->get_xpath($path,0);
+		if (!defined $cd) {
+			$cd = $old_cd;
+			warn("could not change to $path");
+		}
+	} elsif (m/^pwd\s*$/) {
+		print $cd->path,"\n";
+	} elsif (m/^ls\s*$/) {
+		my @c = $cd->children;
+		foreach(@c) {
+			print $_->name,"\t";
+		}
+		print "\n";
+	} elsif (m/^print\s*$/) {
+		print $cd->print;
+	} elsif (m/^dump\s*$/) {
+		print Dumper($cd);
+	} elsif (m/^delete\s*$/) {
+		$cd->delete;
+	} elsif (m/^set_att\s+([^=]+)=(.*)$/) {
+		$cd->set_att($1,$2);
+	} else {
+		die("unknown command $_");
+	}
+}
+
