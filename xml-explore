@@ -15,14 +15,13 @@ if (!defined $ARGV[0]) {
 	print "Usage: xml-explore XML_FILE [update script...]\n";
 	print "\n";
 	print "With no update script, reads standard input\n";
-	print "use 'help' to get list of update commands\n";
+	print "use 'help;' to get list of update commands\n";
 	print "\n";
 	print "Example update script:\n";
-	print '  cd /Service[@name="Catalina"]/Connector[@secure="false"]',"\n";
-	print "  set_att port=80\n";
-	print "  # note: no quotes - anything after the '=' is part of the value\n";
-	print "  cd /\n";
-	print "  print\n";
+	print '  cd /Service[@name="Catalina"]/Connector[@secure="false"];',"\n";
+	print "  set_att port=\"80\";\n";
+	print "  cd /;\n";
+	print "  cat;\n";
 	exit 1;
 }
 
@@ -36,22 +35,30 @@ if ($XML::Twig::VERSION >= 3.34) {
 $xml->parsefile($ARGV[0]);
 shift @ARGV;
 
-# TODO - pass the updates via a macro compiler
-
+# FIXME global!
 my $cd = $xml->root;
-while(<>) {
-	chomp; s/\r//g;
-	# delete whitespace
-	s/^\s*//;
-	# delete comments
-	s/^#.*$//; s/([^\\])#.*$/$1/;
 
-	if (m/^$/) { #ignore blank lines
-		next;
-	} elsif (m/^help\s*$/) { # show a help screen
-		print "cd, pwd, ls, print, dump, delete, set_att\n";
-	} elsif (m/^cd\s+(.*)$/) {
-		my $path=$1;
+sub do_command {
+	local $_;
+	my ($_,@args) = @_;
+
+	return if (!defined $_);
+	#print "cmd: $_ args: ",join(',',@args),"\n";
+
+	if (m/^help$/) { # show a help screen
+		print "cd, pwd, ls, cat, dump, delete, set_att\n";
+	} elsif (m/^pwd$/) { print $cd->path,"\n";
+	} elsif (m/^cat$/) { print $cd->print;
+	} elsif (m/^dump$/) { print Dumper($cd);
+	} elsif (m/^delete$/) { $cd->delete;
+	} elsif (m/^ls$/) {
+		print $_->name,"\t" foreach($cd->children);
+		print "\n";
+	} elsif (m/^cd$/) {
+		my $old_cd = $cd;
+		# hack to allow quoted args
+		$args[0] =~ s/^"//; $args[0] =~ s/"$//;
+		my $path=join('',@args);
 		if ($path =~ s{^/}{}) {
 			# hack!
 			# get_xpath('/') returns success but the object
@@ -61,30 +68,68 @@ while(<>) {
 			# TODO - surely this is not required
 			$cd = $xml->root;
 		}
-		my $old_cd = $cd;
 		$cd = $cd->get_xpath($path,0);
 		if (!defined $cd) {
 			$cd = $old_cd;
-			warn("could not change to $path");
+			print("could not change to $path\n");
 		}
-	} elsif (m/^pwd\s*$/) {
-		print $cd->path,"\n";
-	} elsif (m/^ls\s*$/) {
-		my @c = $cd->children;
-		foreach(@c) {
-			print $_->name,"\t";
+	} elsif (m/^set_att$/) {
+		foreach(@args) {s/^"//;s/"$//;}
+		my $var = shift @args;
+		if (shift @args ne '=') {
+			warn "missing equals in set";
+			return;
 		}
-		print "\n";
-	} elsif (m/^print\s*$/) {
-		print $cd->print;
-	} elsif (m/^dump\s*$/) {
-		print Dumper($cd);
-	} elsif (m/^delete\s*$/) {
-		$cd->delete;
-	} elsif (m/^set_att\s+([^=]+)=(.*)$/) {
-		$cd->set_att($1,$2);
+		my $val = join('',@args);
+		$cd->set_att($var,$val);
 	} else {
-		die("unknown command $_");
+		warn("unknown command $_");
 	}
 }
+
+# TODO - pass the stdin via a macro compiler
+sub do_repl {
+	my @words;
+	$_='';
+	while(1){
+		if (!$_) {
+			# refill
+			$_=<>;
+			if (!defined $_) { # eof
+				do_command(@words);
+				return;
+			}
+		}
+
+		# match tokens
+		if (s/^\s+// || s/^#.*//) { # whitespace or comments
+		} elsif (s{^(\w+)}{} ) { # word
+			push @words,$1;
+		} elsif (s/^\\\"//) { # quoted quote
+			push @words,'"';
+		} elsif (s{^([][/@=])}{}) { # pseudo words
+			push @words,$1;
+		} elsif (m/^\"/) { # begining of a quote
+			if (s/(".*?[^\\]\"|"")//s) { # found end of quote
+				my $s=$1;
+				$s =~ s/\\\"/\"/g;
+				push @words,$s;
+			} else  {
+				# refill
+				my $s=<>;
+				if (!defined $s) {
+					die("eof mid string");
+				}
+				$_.=$s;
+			}
+		} elsif (s/^;//) { # end of command
+			do_command(@words);
+			@words=();
+		} elsif (s/^(.)//s) { # junk character?
+			warn ("got junk char: ",$1,"\n");
+		}
+	}
+}
+
+do_repl($_);
 
