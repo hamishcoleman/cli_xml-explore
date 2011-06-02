@@ -56,7 +56,16 @@ sub do_command {
 		$args[0] =~ s/^"//; $args[0] =~ s/"$//;
 		my $e = XML::Twig::Elt->new($args[0]);
 		$e->paste( last_child => $cd );
-		$cd = $e;
+		shift @args;
+		if (scalar(@args)) {
+			# chain extra args into a set_att.
+			# allowing us to set attribs that let us find this
+			# element in a later 'cd' command
+			my $old_cd = $cd;
+			$cd = $e;
+			do_command('set_att',@args);
+			$cd = $old_cd;
+		}
 	} elsif (m/^ls$/) {
 		print $_->name,"\t" foreach($cd->children);
 		print "\n";
