@@ -107,7 +107,7 @@ sub do_repl {
 			push @words,$1;
 		} elsif (s/^\\\"//) { # quoted quote
 			push @words,'"';
-		} elsif (s{^([][/@=])}{}) { # pseudo words
+		} elsif (s{^([][/@=.])}{}) { # pseudo words
 			push @words,$1;
 		} elsif (m/^\"/) { # begining of a quote
 			if (s/(".*?[^\\]\"|"")//s) { # found end of quote
