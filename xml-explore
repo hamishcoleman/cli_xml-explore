@@ -12,7 +12,7 @@ $Data::Dumper::Indent = 1;
 $Data::Dumper::Sortkeys = 1;
 
 if (!defined $ARGV[0]) {
-	print "Usage: xml-explore XML_FILE [update script...]\n";
+	print "Usage: xml-explore XML_FILE [scriptfile...]\n";
 	print "\n";
 	print "With no update script, reads standard input\n";
 	print "use 'help;' to get list of update commands\n";
