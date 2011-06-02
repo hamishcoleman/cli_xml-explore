@@ -46,11 +46,17 @@ sub do_command {
 	#print "cmd: $_ args: ",join(',',@args),"\n";
 
 	if (m/^help$/) { # show a help screen
-		print "cd, pwd, ls, cat, dump, delete, set_att\n";
+		print "cd, pwd, ls, cat, dump, delete, add, set_att\n";
 	} elsif (m/^pwd$/) { print $cd->path,"\n";
 	} elsif (m/^cat$/) { print $cd->print;
 	} elsif (m/^dump$/) { print Dumper($cd);
 	} elsif (m/^delete$/) { $cd->delete;
+	} elsif (m/^add$/) {
+		# hack to allow quoted args
+		$args[0] =~ s/^"//; $args[0] =~ s/"$//;
+		my $e = XML::Twig::Elt->new($args[0]);
+		$e->paste( last_child => $cd );
+		$cd = $e;
 	} elsif (m/^ls$/) {
 		print $_->name,"\t" foreach($cd->children);
 		print "\n";
