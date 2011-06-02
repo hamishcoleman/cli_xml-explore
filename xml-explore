@@ -47,7 +47,7 @@ sub do_command {
 
 	if (m/^help$/) { # show a help screen
 		print "cd, pwd, ls, cat, dump, delete, add, set_att\n";
-	} elsif (m/^pwd$/) { print $cd->path,"\n";
+	} elsif (m/^pwd$/) { print $cd->xpath,"\n";
 	} elsif (m/^cat$/) { print $cd->print;
 	} elsif (m/^dump$/) { print Dumper($cd);
 	} elsif (m/^delete$/) { $cd->delete;
