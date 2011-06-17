@@ -103,13 +103,25 @@ sub do_command {
 }
 
 # TODO - pass the stdin via a macro compiler
+sub get_line {
+	if ( -t ARGV ) {
+		print "> ";
+	} else {
+		# grrr: first line only
+		if (!defined $ARGV[0] && -t STDIN) {
+			print "> ";
+		}
+	}
+	return <>;
+}
+
 sub do_repl {
 	my @words;
 	$_='';
 	while(1){
 		if (!$_) {
 			# refill
-			$_=<>;
+			$_=get_line();
 			if (!defined $_) { # eof
 				do_command(@words);
 				return;
@@ -131,7 +143,7 @@ sub do_repl {
 				push @words,$s;
 			} else  {
 				# refill
-				my $s=<>;
+				my $s=get_line();
 				if (!defined $s) {
 					die("eof mid string");
 				}
