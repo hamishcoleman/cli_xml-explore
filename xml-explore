@@ -69,6 +69,16 @@ sub do_command {
 	} elsif (m/^ls$/) {
 		print $_->name,"\t" foreach($cd->children);
 		print "\n";
+	} elsif (m/^ll$/) {
+		foreach($cd->children) {
+			print $_->name,' ';
+			my $atts = $_->atts();
+			foreach (sort keys %{$atts}) {
+				print $_,'=',$atts->{$_},', ';
+			}
+			print "\n";
+		}
+		print "\n";
 	} elsif (m/^cd$/) {
 		my $old_cd = $cd;
 		# hack to allow quoted args
