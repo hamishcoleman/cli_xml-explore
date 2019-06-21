@@ -4,6 +4,11 @@ use warnings;
 #
 # Reads an XML file and allows scripted updates to that file
 #
+# TODO
+# - opening a file with multiple documents inside it does not work (This is
+#   apparently technically not actually XML any more, however I would have
+#   expected that a perl xml processing library would have hacks to hack
+#   around someone else's hacks)
 
 use XML::Twig;
 
