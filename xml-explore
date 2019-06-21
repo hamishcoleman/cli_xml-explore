@@ -25,9 +25,10 @@ sub do_command {
 	#print "cmd: $_ args: ",join(',',@args),"\n";
 
 	if (m/^help$/) { # show a help screen
-		print "cd, pwd, ls, cat, dump, delete, add, set_att\n";
+		print "cd, pwd, ls, cat, text, dump, delete, add, set_att\n";
 	} elsif (m/^pwd$/) { print $cd->xpath,"\n";
 	} elsif (m/^cat$/) { print $cd->print;
+	} elsif (m/^text$/) { print $cd->text;
 	} elsif (m/^dump$/) { print Dumper($cd);
 	} elsif (m/^delete$/) { $cd->delete;
 	} elsif (m/^add$/) {
