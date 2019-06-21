@@ -9,6 +9,8 @@ use warnings;
 #   apparently technically not actually XML any more, however I would have
 #   expected that a perl xml processing library would have hacks to hack
 #   around someone else's hacks)
+#   This manifests as "junk after document element at line XXX" and is caused
+#   because XML::Twig pedantically requires "only one document root"
 
 use XML::Twig;
 
