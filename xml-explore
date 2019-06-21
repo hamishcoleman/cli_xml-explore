@@ -145,21 +145,25 @@ sub do_repl {
 	}
 }
 
+sub show_usage {
+    print "Usage: xml-explore XML_FILE [scriptfile...]\n";
+    print "\n";
+    print "With no update script, reads standard input\n";
+    print "use 'help;' to get list of update commands\n";
+    print "\n";
+    print "Example update script:\n";
+    print '  cd /Service[@name="Catalina"]/Connector[@secure="false"];',"\n";
+    print "  set_att port=\"80\";\n";
+    print "  cd /;\n";
+    print "  cat;\n";
+}
+
 sub main {
     binmode STDOUT, ':utf8';
 
     if (!defined $ARGV[0]) {
-            print "Usage: xml-explore XML_FILE [scriptfile...]\n";
-            print "\n";
-            print "With no update script, reads standard input\n";
-            print "use 'help;' to get list of update commands\n";
-            print "\n";
-            print "Example update script:\n";
-            print '  cd /Service[@name="Catalina"]/Connector[@secure="false"];',"\n";
-            print "  set_att port=\"80\";\n";
-            print "  cd /;\n";
-            print "  cat;\n";
-            exit 1;
+        show_usage();
+        exit 1;
     }
 
     my $xml = XML::Twig->new();
