@@ -13,6 +13,7 @@ $Data::Dumper::Sortkeys = 1;
 
 # FIXME global!
 my $cd;
+my $xml;
 
 sub do_command {
 	local $_;
@@ -166,7 +167,7 @@ sub main {
         exit 1;
     }
 
-    my $xml = XML::Twig->new();
+    $xml = XML::Twig->new();
     if ($XML::Twig::VERSION >= 3.34) {
             $xml->set_pretty_print("indented_a");
     } else {
