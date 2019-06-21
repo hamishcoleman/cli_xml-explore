@@ -176,8 +176,8 @@ sub main {
     $xml->parsefile($ARGV[0]);
     shift @ARGV;
 
-    # FIXME global!
-    my $cd = $xml->root;
+    # set "current directory"
+    $cd = $xml->root;
 
     if (defined($ARGV[0])) {
         do_command(@ARGV);
