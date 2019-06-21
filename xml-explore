@@ -92,15 +92,15 @@ sub do_command {
 
 # TODO - pass the stdin via a macro compiler
 sub get_line {
-	if ( -t ARGV ) {
-		print "> ";
-	} else {
-		# grrr: first line only
-		if (!defined $ARGV[0] && -t STDIN) {
-			print "> ";
-		}
-	}
-	return <>;
+    if ( -t ARGV ) {
+        print "> ";
+    } else {
+        # grrr: first line only
+        if (!defined $ARGV[0] && -t STDIN) {
+            print "> ";
+        }
+    }
+    return <>;
 }
 
 sub do_repl {
@@ -179,11 +179,6 @@ sub main {
 
     # set "current directory"
     $cd = $xml->root;
-
-    if (defined($ARGV[0])) {
-        do_command(@ARGV);
-        exit;
-    }
 
     do_repl($_);
 }
