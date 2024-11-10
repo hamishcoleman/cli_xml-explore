@@ -11,6 +11,13 @@ use warnings;
 #   around someone else's hacks)
 #   This manifests as "junk after document element at line XXX" and is caused
 #   because XML::Twig pedantically requires "only one document root"
+#
+# :dotsctl:
+#   destdir: ~/bin/
+#   dpkg:
+#     - libxml-twig-perl
+# ...
+
 
 use XML::Twig;
 
